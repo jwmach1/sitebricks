@@ -1,10 +1,7 @@
 package com.google.sitebricks.mail;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.sitebricks.mail.imap.Folder;
-import com.google.sitebricks.mail.imap.FolderStatus;
-import com.google.sitebricks.mail.imap.Message;
-import com.google.sitebricks.mail.imap.MessageStatus;
+import com.google.sitebricks.mail.imap.*;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -94,7 +91,7 @@ public interface MailClient {
    * <b>NOTE: these can be different to those set due to concurrent updates by other clients.</b>
    * <b>NOTE: you must call {@link #connect()} first.</b>
    */
-  ListenableFuture<List<MessageFlags>> addFlags(EnumSet<Flag> flags, int start, int end);
+  ListenableFuture<List<EnumSet<Flag>>> addFlags(EnumSet<Flag> flags, int imapUid);
 
   /**
    * Removes flags from a range of messages.
@@ -103,7 +100,7 @@ public interface MailClient {
    * <b>NOTE: these can be different to those set due to concurrent updates by other clients.</b>
    * <b>NOTE: you must call {@link #connect()} first.</b>
    */
-  ListenableFuture<List<MessageFlags>> removeFlags(EnumSet<Flag> flags, int start, int end);
+  ListenableFuture<List<EnumSet<Flag>>> removeFlags(EnumSet<Flag> flags, int imapUid);
 
   /**
    * Similar to {@link #list(Folder, int, int)} but fetches the entire message

@@ -3,11 +3,7 @@ package com.google.sitebricks.mail;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.google.sitebricks.mail.imap.Command;
-import com.google.sitebricks.mail.imap.Folder;
-import com.google.sitebricks.mail.imap.FolderStatus;
-import com.google.sitebricks.mail.imap.Message;
-import com.google.sitebricks.mail.imap.MessageStatus;
+import com.google.sitebricks.mail.imap.*;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -149,7 +145,7 @@ class NettyImapClient implements MailClient, Idler {
       // automatically. See connect() for details.
       channel.close().awaitUninterruptibly(config.getTimeout(), TimeUnit.MILLISECONDS);
 
-      if (!isConnected())
+      if (!isConnected() && disconnectListener != null)
         disconnectListener.disconnected();
     }
   }
@@ -163,6 +159,7 @@ class NettyImapClient implements MailClient, Idler {
 
     // Log the command but clip the \r\n
     log.debug("Sending {} to server...", commandString.substring(0, commandString.length() - 2));
+System.out.println("###jochen Sending:  "+ commandString.substring(0, commandString.length() - 2));
 
     // Enqueue command.
     mailClientHandler.enqueue(new CommandCompletion(command, seq, valueFuture, commandString));
@@ -270,25 +267,48 @@ class NettyImapClient implements MailClient, Idler {
         : "*";
   }
 
+//  @Override
+//  public ListenableFuture<List<EnumSet<Flag>>> addFlags(EnumSet<Flag> flags, int start, int end) {
+//    return addOrRemoveFlags(flags, start, end, true);
+//  }
+//  @Override
+//  public ListenableFuture<List<EnumSet<Flag>>> removeFlags(EnumSet<Flag> flags, int start, int end) {
+//    return addOrRemoveFlags(flags, start, end, false);
+//  }
+//
+//  private ListenableFuture<List<EnumSet<Flag>>> addOrRemoveFlags(EnumSet<Flag> flags, int start,
+//                                                                int end, boolean add) {
+//    Preconditions.checkState(loggedIn, "Can't execute command because client is not logged in");
+//    SettableFuture<List<EnumSet<Flag>>> valueFuture = SettableFuture.create();
+//    String args = start + ":" +end + " " + (add ? "+" : "-") + "FLAGS (";
+//    for (Flag f : flags) {
+//      args += Flag.toImap(f) + " ";
+//    }
+//    args += ")";
+//    send(Command.STORE_FLAGS, args, valueFuture);
+//    return valueFuture;
+//  }
+
   @Override
-  public ListenableFuture<List<MessageFlags>> addFlags(EnumSet<Flag> flags, int start, int end) {
-    return addOrRemoveFlags(flags, start, end, true);
+  public ListenableFuture<List<EnumSet<Flag>>> addFlags(EnumSet<Flag> flags, int imapUid) {
+    return addOrRemoveFlags(flags, imapUid, true);
   }
   @Override
-  public ListenableFuture<List<MessageFlags>> removeFlags(EnumSet<Flag> flags, int start, int end) {
-    return addOrRemoveFlags(flags, start, end, false);
+  public ListenableFuture<List<EnumSet<Flag>>> removeFlags(EnumSet<Flag> flags, int imapUid) {
+    return addOrRemoveFlags(flags, imapUid, false);
   }
 
-  private ListenableFuture<List<MessageFlags>> addOrRemoveFlags(EnumSet<Flag> flags, int start,
-                                                                int end, boolean add) {
+
+  private ListenableFuture<List<EnumSet<Flag>>> addOrRemoveFlags(EnumSet<Flag> flags, int imapUid, boolean add) {
     Preconditions.checkState(loggedIn, "Can't execute command because client is not logged in");
-    SettableFuture<List<MessageFlags>> valueFuture = SettableFuture.create();
-    String args = start + ":" +end + " " + (add ? "+" : "-") + "FLAGS (";
-    for (Flag f : flags) {
-      args += Flag.toImap(f) + " ";
-    }
-    args += ")";
-    send(Command.STORE, args, valueFuture);
+    SettableFuture<List<EnumSet<Flag>>> valueFuture = SettableFuture.create();
+//###jochen
+    String args = imapUid + " " + (add ? "+" : "-") + "FLAGS (\\Seen)";
+//    for (Flag f : flags) {
+//      args += Flag.toImap(f) + (" ";
+//    }
+//    args += ")";
+    send(Command.STORE_FLAGS, args, valueFuture);
     return valueFuture;
   }
 
