@@ -142,6 +142,11 @@ public interface MailClient {
    */
   String lastError();
 
+  /**
+   * Returns true if this client has successfully entered and is currently in IMAP IDLE.
+   */
+  boolean isIdling();
+
   static interface DisconnectListener {
     void disconnected();
   }
