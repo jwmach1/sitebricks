@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -228,6 +229,28 @@ class NettyImapClient implements MailClient {
     String args = start + ":" + end + " all";
     send(Command.FETCH_HEADERS, args, valueFuture);
 
+    return valueFuture;
+  }
+
+  @Override
+  public ListenableFuture<List<MessageFlags>> addFlags(EnumSet<Flag> flags, int start, int end) {
+    return addOrRemoveFlags(flags, start, end, true);
+  }
+  @Override
+  public ListenableFuture<List<MessageFlags>> removeFlags(EnumSet<Flag> flags, int start, int end) {
+    return addOrRemoveFlags(flags, start, end, false);
+  }
+
+  private ListenableFuture<List<MessageFlags>> addOrRemoveFlags(EnumSet<Flag> flags, int start,
+                                                                int end, boolean add) {
+    Preconditions.checkState(loggedIn, "Can't execute command because client is not logged in");
+    SettableFuture<List<MessageFlags>> valueFuture = SettableFuture.create();
+    String args = start + ":" +end + " " + (add ? "+" : "-") + "FLAGS (";
+    for (Flag f : flags) {
+      args += Flag.toImap(f) + " ";
+    }
+    args += ")";
+    send(Command.STORE, args, valueFuture);
     return valueFuture;
   }
 
