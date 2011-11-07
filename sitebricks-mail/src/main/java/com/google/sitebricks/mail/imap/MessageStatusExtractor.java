@@ -162,6 +162,13 @@ class MessageStatusExtractor implements Extractor<List<MessageStatus>> {
     return true;
   }
 
+  private static boolean parseUid(Queue<String> tokens, MessageStatus status) {
+    if (Parsing.matchAnyOf(tokens, "UID") == null)
+      return false;
+    status.setImapUid(Parsing.match(tokens, int.class));
+    return true;
+  }
+
   private static boolean parseEnvelope(Queue<String> tokens, MessageStatus status) {
     if (Parsing.matchAnyOf(tokens, "ENVELOPE") == null)
       return false;

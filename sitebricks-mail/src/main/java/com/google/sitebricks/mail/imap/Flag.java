@@ -1,7 +1,7 @@
 package com.google.sitebricks.mail.imap;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 /**
  * @author dhanji@gmail.com (Dhanji R. Prasanna)
@@ -15,7 +15,8 @@ public enum Flag {
   ANSWERED,
   FORWARDED,
   ;
-  private static Map<String, Flag> flagMap = new HashMap<String, Flag>();
+
+  private static BiMap<String, Flag> flagMap = HashBiMap.create(10);
   static {
     flagMap.put("\\seen", SEEN);
     flagMap.put("\\recent", RECENT);
@@ -28,5 +29,9 @@ public enum Flag {
 
   public static Flag parse(String flag) {
     return flagMap.get(flag.toLowerCase());
+  }
+
+  public static String toImap(Flag f) {
+    return flagMap.inverse().get(f);
   }
 }
