@@ -35,7 +35,6 @@ class FolderStatusExtractor implements Extractor<FolderStatus> {
             status.setNextUid(Integer.valueOf(pieces[i + 1]));
           } else if ("UIDVALIDITY".equals(piece)) {
             status.setUidValidity(Integer.valueOf(pieces[i + 1]));
-System.out.println("###jochen uivalididty" + status.getUidValidity());            
           }
         }
       }

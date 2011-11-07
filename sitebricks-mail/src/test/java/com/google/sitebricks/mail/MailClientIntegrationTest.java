@@ -3,10 +3,7 @@ package com.google.sitebricks.mail;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Guice;
 import com.google.sitebricks.mail.Mail.Auth;
-import com.google.sitebricks.mail.imap.Flag;
-import com.google.sitebricks.mail.imap.Folder;
-import com.google.sitebricks.mail.imap.FolderStatus;
-import com.google.sitebricks.mail.imap.MessageStatus;
+import com.google.sitebricks.mail.imap.*;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.util.EnumSet;
@@ -36,7 +33,7 @@ public class MailClientIntegrationTest {
   public static void main(String...args) throws InterruptedException, ExecutionException {
     Mail mail = Guice.createInjector().getInstance(Mail.class);
     final MailClient client = mail.clientOf("imap.gmail.com", 993)
-        .prepare(Auth.SSL, "wickedwavewrangler@gmail.com", "letshangten"); //###jochen
+         .prepare(Auth.SSL, "dhanji@gmail.com", System.getProperty("sitebricks-mail.password"));
 
     client.connect();
 
@@ -58,29 +55,24 @@ public class MailClientIntegrationTest {
         // Can't send other commands over the channel while idling.
 //        client.listFolders();
 
-        ListenableFuture<List<MessageStatus>> messagestatus = client.list(allMail, 1, 1000);
-
-//        ListenableFuture<List<Message>> messages = client.fetch(allMail, 1, 100000);
+//        ListenableFuture<List<MessageStatus>> messagestatus = client.list(allMail, 1, 1000);
+        ListenableFuture<List<Message>> messages = client.fetch(allMail, 80000, 80001);
         try {
-          for (MessageStatus status : messagestatus.get()) {
-            System.out.println(ToStringBuilder.reflectionToString(status));
+          for (Message message : messages.get()) {
+            System.out.println(ToStringBuilder.reflectionToString(message));
+            for (Message.BodyPart bodyPart : message.getBodyParts()) {
+              System.out.println(ToStringBuilder.reflectionToString(bodyPart));
+            }
           }
-          client.addFlags(EnumSet.of(Flag.SEEN), messagestatus.get().get(2).getImapUid());
-          //client.send()
-          System.out.println("Fetched: " + messagestatus.get().size());
-Thread.sleep(2000);
-//          for (Message message : messages.get()) {
-//            System.out.println(ToStringBuilder.reflectionToString(message));
-//            for (Message.BodyPart bodyPart : message.getBodyParts()) {
-//              System.out.println(ToStringBuilder.reflectionToString(bodyPart));
-//            }
-//          }
-//
+
 //          for (Message msg : messages.get()) {
 //            System.out.println(ToStringBuilder.reflectionToString(msg));
 //          }
-//
-//          System.out.println("Fetched: " + messages.get().size());
+
+
+          client.addFlags(EnumSet.of(Flag.SEEN), messages.get().get(2).getImapUid());
+
+          System.out.println("Fetched: " + messages.get().size());
         } catch (InterruptedException e) {
           e.printStackTrace();
         } catch (ExecutionException e) {
